@@ -1,0 +1,8 @@
+*.lo
+*.la
+.libs
+Makefile
+Makefile.fragments
+Makefile.global
+Makefile.objects
+*.tgz

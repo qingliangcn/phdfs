@@ -18,7 +18,7 @@
 
 #include "php_phdfs.h"
 
-#if HAVE_PHDFS 
+#if HAVE_PHDFS
 
 /* {{{ Class definitions */
 
@@ -39,16 +39,16 @@ typedef struct _ptp_phdfs_prop_handler {
 static HashTable php_phdfs_properties;
 #if  PHP_VERSION_ID >= 50400
 zval *php_phdfs_read_property(zval *object, zval *member, int type, const zend_literal *key TSRMLS_DC) {
-#else 
+#else
     zval *php_phdfs_read_property(zval *object, zval *member, int type  TSRMLS_DC) {
 #endif
     zval tmp_member;
     zval *retval;
     ze_phdfs_object *obj;
     php_phdfs_prop_handler *hnd;
-    int ret; 
+    int ret;
     ret = FAILURE;
-    obj = (ze_phdfs_object *) zend_objects_get_address(object TSRMLS_CC); 
+    obj = (ze_phdfs_object *) zend_objects_get_address(object TSRMLS_CC);
     if (Z_TYPE_P(member) != IS_STRING) {
         tmp_member = *member;
         zval_copy_ctor(&tmp_member);
@@ -67,7 +67,7 @@ zval *php_phdfs_read_property(zval *object, zval *member, int type, const zend_l
         zend_object_handlers * std_hnd = zend_get_std_object_handlers();
         #if  PHP_VERSION_ID >= 50400
         retval = std_hnd->read_property(object, member, type, key TSRMLS_CC);
-        #else 
+        #else
         retval = std_hnd->read_property(object, member, type TSRMLS_CC);
         #endif
     }
@@ -128,7 +128,6 @@ static int php_phdfs_has_property(zval *object, zval *member, int has_set_exists
 #else
 static int php_phdfs_has_property(zval *object, zval *member, int has_set_exists TSRMLS_DC) {
 #endif
-
     php_phdfs_prop_handler *hnd;
     int ret = 0;
     if (zend_hash_find(&php_phdfs_properties, Z_STRVAL_P(member), Z_STRLEN_P(member) + 1, (void **) &hnd) == SUCCESS) {
@@ -143,7 +142,7 @@ static int php_phdfs_has_property(zval *object, zval *member, int has_set_exists
                 #else
                 zval *value = php_phdfs_read_property(object, member, BP_VAR_IS TSRMLS_CC);
                 #endif
-                
+
                 if (value != EG(uninitialized_zval_ptr)) {
                     ret = Z_TYPE_P(value) != IS_NULL ? 1 : 0;
                     Z_ADDREF_P(value);
@@ -174,7 +173,7 @@ static int php_phdfs_has_property(zval *object, zval *member, int has_set_exists
         #else
         ret = std_hnd->has_property(object, member, has_set_exists TSRMLS_CC);
         #endif
-        
+
     }
     return ret;
 }
@@ -206,7 +205,7 @@ static HashTable *php_phdfs_get_properties(zval *object TSRMLS_DC) {
 static zend_object_value phdfs_objects_new(zend_class_entry *class_type TSRMLS_DC) /* {{{ */ {
     zend_object_value retval;
     ze_phdfs_object *intern;
-    intern = emalloc(sizeof (ze_phdfs_object)); 
+    intern = emalloc(sizeof (ze_phdfs_object));
     memset(&intern->zo, 0, sizeof (ze_phdfs_object));
     zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
     object_properties_init(&intern->zo, class_type);
@@ -219,23 +218,25 @@ static zend_object_value phdfs_objects_new(zend_class_entry *class_type TSRMLS_D
 
 /* {{{ proto boolean __construct()
  */
-PHP_METHOD(phdfs, __construct) { 
+PHP_METHOD(phdfs, __construct) {
     zval * _this_zval = NULL;
     int hdfs_host_len = 0;
     int hdfs_port_len = 0;
-    char *hdfs_host,*hdfs_port;
-    zval *id; 
+	int hdfs_username_len = 0;
+    char *hdfs_host,*hdfs_port,*hdfs_username;
+    zval *id;
     id = getThis();
-    ze_phdfs_object *intern; 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &hdfs_host,&hdfs_host_len,&hdfs_port,&hdfs_port_len) == FAILURE) {
+    ze_phdfs_object *intern;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss", &hdfs_host,&hdfs_host_len,&hdfs_port,&hdfs_port_len, &hdfs_username, &hdfs_username_len) == FAILURE) {
         return;
-    }  
+    }
     intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);
-    intern->hdfs_host = hdfs_host; 
+    intern->hdfs_host = hdfs_host;
     intern->hdfs_port = hdfs_port;
-    intern->ptr = NULL; 
+    intern->ptr = NULL;
     zend_update_property_string(phdfs_ce_ptr,id,"host",strlen("host"),hdfs_host  TSRMLS_CC);
-    zend_update_property_string(phdfs_ce_ptr,id,"port",strlen("port"),hdfs_port  TSRMLS_CC);    
+    zend_update_property_string(phdfs_ce_ptr,id,"port",strlen("port"),hdfs_port  TSRMLS_CC);
+	zend_update_property_string(phdfs_ce_ptr,id,"username",strlen("username"),hdfs_username  TSRMLS_CC);
 }
 /* }}} __construct */
 
@@ -249,16 +250,27 @@ PHP_METHOD(phdfs, __destruct) {
  */
 PHP_METHOD(phdfs, connect) {
     zval * _this_zval = NULL;
-    zval *id,*host,*port;
+    zval *id,*host,*port, *username;
     ze_phdfs_object *intern;
     id = getThis();
     if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "O", &_this_zval, _this_zval) == FAILURE) {
         return;
     }
-    intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);  
-    host = zend_read_property(Z_OBJCE_P(_this_zval),id, ZEND_STRL("host"),0 TSRMLS_CC);
-    port = zend_read_property(Z_OBJCE_P(_this_zval),id,ZEND_STRL("port"),0 TSRMLS_CC);  
-    intern->ptr = phdfs_hadoop_hdfs_connect(Z_STRVAL_P(host) ? Z_STRVAL_P(host) : 0, atoi(Z_STRVAL_P(port) ? Z_STRVAL_P(port) : 0));
+
+	intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);
+	host = zend_read_property(Z_OBJCE_P(_this_zval),id, ZEND_STRL("host"),0 TSRMLS_CC);
+	port = zend_read_property(Z_OBJCE_P(_this_zval),id,ZEND_STRL("port"),0 TSRMLS_CC);
+	username =  zend_read_property(Z_OBJCE_P(_this_zval),id,ZEND_STRL("username"),0 TSRMLS_CC);
+
+	struct hdfsBuilder *bld = hdfsNewBuilder();
+	hdfsBuilderSetNameNode(bld, Z_STRVAL_P(host));
+	hdfsBuilderSetNameNodePort(bld, atoi(Z_STRVAL_P(port)));
+	hdfsBuilderSetUserName(bld, Z_STRVAL_P(username));
+
+	intern->ptr = hdfsBuilderConnect(bld);
+
+	//hdfsFreeBuilder(bld);
+
     if (!intern->ptr) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING,
 						"Unable to connect to the server");
@@ -272,13 +284,13 @@ PHP_METHOD(phdfs, connect) {
 
 /* {{{ proto mixed write(char*  path,char*  buffer [, int mode ])
  */
-PHP_METHOD(phdfs, write) { 
+PHP_METHOD(phdfs, write) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
     const char *buffer = NULL;
     int buffer_len = 0;
-    int mode = O_WRONLY | O_CREAT;
+    int mode = O_WRONLY | O_CREAT ;
     int mode_len = 0;
     zval *id;
     phdfs_hadoop_tsize buffer_size;
@@ -295,15 +307,15 @@ PHP_METHOD(phdfs, write) {
 						"Unable to connect to the server");
         ZVAL_FALSE(return_value);
         return;
-    } 
-    buffer_size = strtoul(buffer, NULL, 10); 
-    hdfs_file = phdfs_hadoop_hdfs_open_file(intern->ptr, path, mode, buffer_size, 0, 0); 
-    if (!hdfs_file) { 
+    }
+    buffer_size = strtoul(buffer, NULL, 10);
+    hdfs_file = phdfs_hadoop_hdfs_open_file(intern->ptr, path, mode, buffer_size, 0, 0);
+    if (!hdfs_file) {
         ZVAL_FALSE(return_value);
         return;
-    } 
+    }
     num_written_bytes = phdfs_hadoop_hdfs_write(intern->ptr, hdfs_file, (void*) buffer, strlen(buffer) + 1);
-    if (phdfs_hadoop_hdfs_flush(intern->ptr, hdfs_file)) { 
+    if (phdfs_hadoop_hdfs_flush(intern->ptr, hdfs_file)) {
         ZVAL_FALSE(return_value);
         return;
     }
@@ -329,7 +341,7 @@ PHP_METHOD(phdfs, disconnect) {
     }
     if(phdfs_hadoop_hdfs_disconnect(intern->ptr)==0){
         ZVAL_TRUE(return_value);
-        return;  
+        return;
     }else{
         ZVAL_FALSE(return_value);
         return;
@@ -371,7 +383,7 @@ PHP_METHOD(phdfs, exists) {
 
 /* {{{ proto boolean create_directory(const char*  path)
  */
-PHP_METHOD(phdfs, create_directory) { 
+PHP_METHOD(phdfs, create_directory) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
@@ -401,7 +413,7 @@ PHP_METHOD(phdfs, create_directory) {
 
 /* {{{ proto boolean delete(char*  path)
  */
-PHP_METHOD(phdfs, delete) { 
+PHP_METHOD(phdfs, delete) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
@@ -419,7 +431,7 @@ PHP_METHOD(phdfs, delete) {
         ZVAL_FALSE(return_value);
         return;
     }
-    state = phdfs_hadoop_hdfs_delete(intern->ptr, path);
+    state = phdfs_hadoop_hdfs_delete(intern->ptr, path, 1);
     if (state==0) {
         ZVAL_TRUE(return_value);
         return;
@@ -431,7 +443,7 @@ PHP_METHOD(phdfs, delete) {
 
 /* {{{ proto boolean rename(const char* old_path , const char* new_path)
  */
-PHP_METHOD(phdfs, rename) { 
+PHP_METHOD(phdfs, rename) {
     zval * _this_zval = NULL;
     const char * old_path = NULL;
     const char * new_path = NULL;
@@ -454,7 +466,7 @@ PHP_METHOD(phdfs, rename) {
     state = phdfs_hadoop_hdfs_rename(intern->ptr, old_path,new_path);
     if (state==0) {
         ZVAL_TRUE(return_value);
-        return; 
+        return;
     }
     ZVAL_FALSE(return_value);
     return;
@@ -463,7 +475,7 @@ PHP_METHOD(phdfs, rename) {
 
 /* {{{ proto boolean read(const char* path)
  */
-PHP_METHOD(phdfs, read) { 
+PHP_METHOD(phdfs, read) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
@@ -484,7 +496,7 @@ PHP_METHOD(phdfs, read) {
         return;
     }
     hdfs_file = phdfs_hadoop_hdfs_open_file(intern->ptr,path,O_RDONLY, read_length, 0, 0);
-    buffer = emalloc(sizeof(char) * read_length); 
+    buffer = emalloc(sizeof(char) * read_length);
     phdfs_hadoop_hdfs_read(intern->ptr, hdfs_file, (void*)buffer,read_length);
     ZVAL_STRINGL(return_value,buffer,read_length, 1);
     efree(buffer);
@@ -494,7 +506,7 @@ PHP_METHOD(phdfs, read) {
 
 /* {{{ proto array file_info(const char* path)
  */
-PHP_METHOD(phdfs, file_info) { 
+PHP_METHOD(phdfs, file_info) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
@@ -512,7 +524,7 @@ PHP_METHOD(phdfs, file_info) {
         ZVAL_FALSE(return_value);
         return;
     }
-    if((hdfs_file_info = phdfs_hadoop_hdfs_get_path_info(intern->ptr, path)) != NULL) { 
+    if((hdfs_file_info = phdfs_hadoop_hdfs_get_path_info(intern->ptr, path)) != NULL) {
             array_init(return_value);
             add_assoc_string(return_value,"name",hdfs_file_info->mName, 1);
             add_assoc_double(return_value,"replication",hdfs_file_info->mReplication);
@@ -532,7 +544,7 @@ PHP_METHOD(phdfs, file_info) {
 
 /* {{{ proto array list_directory(const char* path)
  */
-PHP_METHOD(phdfs, list_directory) { 
+PHP_METHOD(phdfs, list_directory) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
@@ -553,7 +565,7 @@ PHP_METHOD(phdfs, list_directory) {
         ZVAL_FALSE(return_value);
         return;
     }
-    if((hdfs_file_info = phdfs_hadoop_hdfs_list_directory(intern->ptr, path,&level)) != NULL) { 
+    if((hdfs_file_info = phdfs_hadoop_hdfs_list_directory(intern->ptr, path,&level)) != NULL) {
         array_init(return_value);
         for(i=0; i < level; ++i) {
                 MAKE_STD_ZVAL(subarray);
@@ -564,7 +576,7 @@ PHP_METHOD(phdfs, list_directory) {
                 add_assoc_double(subarray,"size",hdfs_file_info[i].mSize);
                 add_assoc_string(subarray,"lastMod",ctime(&hdfs_file_info[i].mLastMod), 1);
                 add_assoc_string(subarray,"owner",hdfs_file_info[i].mOwner, 1);
-                add_assoc_string(subarray,"group",hdfs_file_info[i].mGroup, 1); 
+                add_assoc_string(subarray,"group",hdfs_file_info[i].mGroup, 1);
                 add_index_zval(return_value,i,subarray);
         }
         phdfs_hadoop_hdfs_free_file_info(hdfs_file_info,level);
@@ -578,7 +590,7 @@ PHP_METHOD(phdfs, list_directory) {
 
 /* {{{ proto int tell(const char* path)
  */
-PHP_METHOD(phdfs, tell) { 
+PHP_METHOD(phdfs, tell) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
@@ -601,7 +613,7 @@ PHP_METHOD(phdfs, tell) {
         return;
     }
     hdfs_file = phdfs_hadoop_hdfs_open_file(intern->ptr,path,O_RDONLY, read_length, 0, 0);
-    if((current_pos = phdfs_hadoop_hdfs_tell(intern->ptr,hdfs_file)) != seek_pos) { 
+    if((current_pos = phdfs_hadoop_hdfs_tell(intern->ptr,hdfs_file)) != seek_pos) {
        ZVAL_LONG(return_value,current_pos);
        return;
     }
@@ -632,7 +644,7 @@ PHP_METHOD(phdfs, copy) {
         ZVAL_FALSE(return_value);
         return;
     }
-    if(phdfs_hadoop_hdfs_copy(intern->ptr,source_file,intern->ptr, destination_file) == 0 ) { 
+    if(phdfs_hadoop_hdfs_copy(intern->ptr,source_file,intern->ptr, destination_file) == 0 ) {
        ZVAL_TRUE(return_value);
        return;
     }
@@ -693,7 +705,7 @@ ZEND_GET_MODULE(phdfs)
 
 
 /* {{{ PHP_MINIT_FUNCTION */
-PHP_MINIT_FUNCTION(phdfs) { 
+PHP_MINIT_FUNCTION(phdfs) {
     zend_class_entry ce;
     memcpy(&phdfs_object_handlers, zend_get_std_object_handlers(), sizeof (zend_object_handlers));
     phdfs_object_handlers.read_property = php_phdfs_read_property;
@@ -706,36 +718,36 @@ PHP_MINIT_FUNCTION(phdfs) {
     phdfs_ce_ptr = zend_register_internal_class(&ce TSRMLS_CC);
     zend_declare_property_string(phdfs_ce_ptr, "host", strlen("host"), "127.0.0.1", ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
     zend_declare_property_string(phdfs_ce_ptr, "port", strlen("port"), "9000", ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
+	 zend_declare_property_string(phdfs_ce_ptr, "username", strlen("username"), "hadoop", ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
     zend_hash_init(&php_phdfs_properties, 0, NULL, NULL, 1);
     REGISTER_LONG_CONSTANT("O_WRONLY", O_WRONLY, CONST_CS | CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("O_CREAT", O_CREAT, CONST_CS | CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("O_APPEND", O_APPEND, CONST_CS | CONST_PERSISTENT);
-
     return SUCCESS;
 }
 /* }}} */
 
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
-PHP_MSHUTDOWN_FUNCTION(phdfs) {  
-    zend_hash_destroy(&php_phdfs_properties); 
+PHP_MSHUTDOWN_FUNCTION(phdfs) {
+    zend_hash_destroy(&php_phdfs_properties);
     return SUCCESS;
 }
 /* }}} */
 
 /* {{{ PHP_RINIT_FUNCTION */
-PHP_RINIT_FUNCTION(phdfs) { 
+PHP_RINIT_FUNCTION(phdfs) {
     return SUCCESS;
 }
 /* }}} */
 
 /* {{{ PHP_RSHUTDOWN_FUNCTION */
-PHP_RSHUTDOWN_FUNCTION(phdfs) { 
+PHP_RSHUTDOWN_FUNCTION(phdfs) {
     return SUCCESS;
 }
 /* }}} */
 
 /* {{{ PHP_MINFO_FUNCTION */
-PHP_MINFO_FUNCTION(phdfs) { 
+PHP_MINFO_FUNCTION(phdfs) {
     php_info_print_table_start();
     php_info_print_table_header(2, "phdfs support", "enabled");
     php_info_print_table_row(2, "Version", PHP_PHDFS_VERSION " (stable)");
