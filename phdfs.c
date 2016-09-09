@@ -313,7 +313,7 @@ PHP_METHOD(phdfs, fwrite) {
     }
 
     num_written_bytes = phdfs_hadoop_hdfs_write(intern->ptr, intern->file, (void*) buffer, strlen(buffer) + 1);
-    if (phdfs_hadoop_hdfs_flush(intern->ptr, hdfs_file)) {
+    if (phdfs_hadoop_hdfs_flush(intern->ptr, intern->file)) {
         ZVAL_FALSE(return_value);
         return;
     }
