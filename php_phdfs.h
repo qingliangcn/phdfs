@@ -125,9 +125,10 @@ ZEND_DECLARE_MODULE_GLOBALS(phdfs)
 
 PHP_METHOD(phdfs, __construct);
 #if (PHP_MAJOR_VERSION >= 5)
-ZEND_BEGIN_ARG_INFO(phdfs__construct_args,2)
+ZEND_BEGIN_ARG_INFO(phdfs__construct_args,3)
   ZEND_ARG_INFO(0,host)
   ZEND_ARG_INFO(0,port)
+  ZEND_ARG_INFO(0,username)
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__construct_args NULL
@@ -196,6 +197,31 @@ ZEND_END_ARG_INFO()
 #define phdfs__disconnect_args NULL
 #endif
 
+PHP_METHOD(phdfs, open);
+#if (PHP_MAJOR_VERSION >= 5)
+ZEND_BEGIN_ARG_INFO_EX(phdfs__open_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
+  ZEND_ARG_INFO(0,path)
+ZEND_END_ARG_INFO()
+#else /* PHP 4.x */
+#define phdfs__write_args NULL
+#endif
+
+PHP_METHOD(phdfs, close);
+#if (PHP_MAJOR_VERSION >= 5)
+ZEND_BEGIN_ARG_INFO_EX(phdfs__close_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 0)
+ZEND_END_ARG_INFO()
+#else /* PHP 4.x */
+#define phdfs__write_args NULL
+#endif
+
+PHP_METHOD(phdfs, fwrite);
+#if (PHP_MAJOR_VERSION >= 5)
+ZEND_BEGIN_ARG_INFO_EX(phdfs__fwrite_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
+  ZEND_ARG_INFO(0,buffer)
+ZEND_END_ARG_INFO()
+#else /* PHP 4.x */
+#define phdfs__write_args NULL
+#endif
 
 PHP_METHOD(phdfs, write);
 #if (PHP_MAJOR_VERSION >= 5)

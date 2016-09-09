@@ -772,7 +772,7 @@ static zend_function_entry phdfs_methods[] = {
     PHP_ME(phdfs, exists, phdfs__exists_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, open, phdfs__open_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, close, phdfs__close_args, ZEND_ACC_PUBLIC)
-    PHP_ME(phdfs, fwrite, phdfs__write_args, ZEND_ACC_PUBLIC)
+    PHP_ME(phdfs, fwrite, phdfs__fwrite_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, write, phdfs__write_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, read, phdfs__read_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, file_info, phdfs__file_info_args, ZEND_ACC_PUBLIC)
