@@ -41,6 +41,7 @@
 #define phdfs_hadoop_toffset                tOffset
 #define phdfs_hadoop_hdfs                   hdfsFS
 
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -106,8 +107,10 @@ PHP_METHOD(phdfs, __destruct);
 typedef struct _ze_phdfs_object {
 	zend_object zo;
 	phdfs_hadoop_hdfs ptr;
+	phdfs_hadoop_hdfs_file file;
 	char *hdfs_host;
 	char *hdfs_port;
+	char *hdfs_username;
 } ze_phdfs_object;
 
 ZEND_BEGIN_MODULE_GLOBALS(phdfs)

@@ -233,7 +233,9 @@ PHP_METHOD(phdfs, __construct) {
     intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);
     intern->hdfs_host = hdfs_host;
     intern->hdfs_port = hdfs_port;
+    intern->hdfs_username = hdfs_username;
     intern->ptr = NULL;
+    intern->file = NULL;
     zend_update_property_string(phdfs_ce_ptr,id,"host",strlen("host"),hdfs_host  TSRMLS_CC);
     zend_update_property_string(phdfs_ce_ptr,id,"port",strlen("port"),hdfs_port  TSRMLS_CC);
 	zend_update_property_string(phdfs_ce_ptr,id,"username",strlen("username"),hdfs_username  TSRMLS_CC);
@@ -281,6 +283,114 @@ PHP_METHOD(phdfs, connect) {
     return;
 }
 /* }}} connect */
+
+/* {{{ proto mixed fwrite(char*  buffer)
+ */
+PHP_METHOD(phdfs, fwrite) {
+    zval * _this_zval = NULL;
+    const char *buffer = NULL;
+    int buffer_len = 0;
+
+    zval *id;
+    phdfs_hadoop_tsize buffer_size;
+    ze_phdfs_object *intern;
+    phdfs_hadoop_tsize num_written_bytes;
+    id = getThis();
+    if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "Os", &_this_zval, _this_zval, &buffer, &buffer_len) == FAILURE) {
+        return;
+    }
+    intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);
+    if (!intern->ptr) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "not connect to the server");
+        ZVAL_FALSE(return_value);
+        return;
+    }
+
+    if (!intern->file) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "you need open file first");
+        ZVAL_FALSE(return_value);
+        return;
+    }
+
+    num_written_bytes = phdfs_hadoop_hdfs_write(intern->ptr, intern->file, (void*) buffer, strlen(buffer) + 1);
+    if (phdfs_hadoop_hdfs_flush(intern->ptr, hdfs_file)) {
+        ZVAL_FALSE(return_value);
+        return;
+    }
+    if (num_written_bytes != strlen(buffer) + 1) {
+        // @todo 如何修复?
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "file write not complete");
+
+        ZVAL_FALSE(return_value);
+        return;
+    }
+    ZVAL_TRUE(return_value);
+    return;
+}
+
+/* }}} fwrite */
+
+/* {{{ proto mixed open(char*  path)
+ */
+PHP_METHOD(phdfs, open) {
+    zval * _this_zval = NULL;
+    const char * path = NULL;
+    int path_len = 0;
+    int mode;
+    int state;
+    zval *id;
+
+    ze_phdfs_object *intern;
+
+    id = getThis();
+    if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "Os", &_this_zval, _this_zval, &path, &path_len) == FAILURE) {
+        return;
+    }
+    intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);
+    if (!intern->ptr) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "not connect to the server");
+        ZVAL_FALSE(return_value);
+        return;
+    }
+    // 判断文件是否存在
+    state = phdfs_hadoop_hdfs_exists(intern->ptr,path);
+    if (state==0) {
+        mode = O_WRONLY;
+    } else {
+        mode = O_WRONLY | O_CREAT
+    }
+
+    intern->file = phdfs_hadoop_hdfs_open_file(intern->ptr, path, mode, 0, 0, 0);
+    if (!intern->file) {
+        ZVAL_FALSE(return_value);
+        return;
+    }
+    ZVAL_TRUE(return_value);
+    return;
+}
+
+/* }}} open */
+
+/* {{{ proto mixed close()
+ */
+PHP_METHOD(phdfs, close) {
+    zval * _this_zval = NULL;
+    zval *id;
+    ze_phdfs_object *intern;
+    id = getThis();
+
+    intern = (ze_phdfs_object *) zend_object_store_get_object(id TSRMLS_CC);
+    if (!intern->ptr) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to connect to the server");
+        ZVAL_FALSE(return_value);
+        return;
+    }
+    phdfs_hadoop_hdfs_close_file(intern->ptr, intern->file);
+    ZVAL_TRUE(return_value);
+    return;
+}
+
+/* }}} close */
 
 /* {{{ proto mixed write(char*  path,char*  buffer [, int mode ])
  */
@@ -660,6 +770,9 @@ static zend_function_entry phdfs_methods[] = {
     PHP_ME(phdfs, connect, phdfs__connect_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, disconnect, phdfs__disconnect_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, exists, phdfs__exists_args, ZEND_ACC_PUBLIC)
+    PHP_ME(phdfs, open, phdfs__open_args, ZEND_ACC_PUBLIC)
+    PHP_ME(phdfs, close, phdfs__close_args, ZEND_ACC_PUBLIC)
+    PHP_ME(phdfs, fwrite, phdfs__write_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, write, phdfs__write_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, read, phdfs__read_args, ZEND_ACC_PUBLIC)
     PHP_ME(phdfs, file_info, phdfs__file_info_args, ZEND_ACC_PUBLIC)
