@@ -14,7 +14,7 @@
   +----------------------------------------------------------------------+
   | Authors: yuduan chen <yumin1985@php.net>                             |
   +----------------------------------------------------------------------+
-*/ 
+*/
 
 #ifndef PHP_PHDFS_H
 #define PHP_PHDFS_H
@@ -28,7 +28,7 @@
 #define phdfs_hadoop_hdfs_disconnect        hdfsDisconnect
 #define phdfs_hadoop_hdfs_exists            hdfsExists
 #define phdfs_hadoop_hdfs_create_directory  hdfsCreateDirectory
-#define phdfs_hadoop_hdfs_delete            hdfsDelete 
+#define phdfs_hadoop_hdfs_delete            hdfsDelete
 #define phdfs_hadoop_hdfs_rename            hdfsRename
 #define phdfs_hadoop_hdfs_read              hdfsRead
 #define phdfs_hadoop_hdfs_get_path_info     hdfsGetPathInfo
@@ -63,7 +63,7 @@ extern "C" {
 #include <stdlib.h>
 #include "hdfs.h"
 #ifdef  __cplusplus
-} 
+}
 #endif
 #ifdef  __cplusplus
 extern "C" {
@@ -83,8 +83,7 @@ PHP_MSHUTDOWN_FUNCTION(phdfs);
 PHP_RINIT_FUNCTION(phdfs);
 PHP_RSHUTDOWN_FUNCTION(phdfs);
 PHP_MINFO_FUNCTION(phdfs);
-
-PHP_METHOD(phdfs, __construct);                                      
+PHP_METHOD(phdfs, __construct);
 PHP_METHOD(phdfs, __destruct);
 
 #ifdef ZTS
@@ -120,7 +119,7 @@ ZEND_END_MODULE_GLOBALS(phdfs)
 #define PHDFS_G(v) (phdfs_globals.v)
 #endif
 ZEND_DECLARE_MODULE_GLOBALS(phdfs)
-        
+
 PHP_METHOD(phdfs, __construct);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO(phdfs__construct_args,2)
@@ -130,7 +129,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__construct_args NULL
 #endif
-        
+
 PHP_METHOD(phdfs, connect);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__connect_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE,0)
@@ -138,7 +137,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__connect_args NULL
 #endif
-   
+
 PHP_METHOD(phdfs, rename);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__rename_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE,2)
@@ -158,7 +157,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__read_args NULL
 #endif
-        
+
 PHP_METHOD(phdfs, file_info);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__file_info_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
@@ -167,7 +166,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__file_info_args NULL
 #endif
-                
+
 PHP_METHOD(phdfs,create_directory);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__create_directory_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
@@ -185,16 +184,16 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__exists_args NULL
 #endif
-        
+
 PHP_METHOD(phdfs, disconnect);
 #if (PHP_MAJOR_VERSION >= 5)
-ZEND_BEGIN_ARG_INFO_EX(phdfs__disconnect_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE,0) 
+ZEND_BEGIN_ARG_INFO_EX(phdfs__disconnect_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE,0)
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__disconnect_args NULL
 #endif
-        
-        
+
+
 PHP_METHOD(phdfs, write);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__write_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 2)
@@ -214,7 +213,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__delete_args NULL
 #endif
-        
+
 PHP_METHOD(phdfs, copy);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__copy_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE,2)
@@ -224,7 +223,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__copy_args NULL
 #endif
-        
+
 PHP_METHOD(phdfs,list_directory);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__list_directory_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
@@ -233,7 +232,7 @@ ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__list_directory_args NULL
 #endif
-        
+
 PHP_METHOD(phdfs,tell);
 #if (PHP_MAJOR_VERSION >= 5)
 ZEND_BEGIN_ARG_INFO_EX(phdfs__tell_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
@@ -241,7 +240,7 @@ ZEND_BEGIN_ARG_INFO_EX(phdfs__tell_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__tell_args NULL
-#endif 
+#endif
 
 PHP_METHOD(phdfs, __destruct);
 #if (PHP_MAJOR_VERSION >= 5)
@@ -249,7 +248,7 @@ ZEND_BEGIN_ARG_INFO_EX(phdfs__destruct_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__destruct_args NULL
-#endif 
+#endif
 
 #ifdef  __cplusplus
 }
