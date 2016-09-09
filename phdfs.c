@@ -357,7 +357,7 @@ PHP_METHOD(phdfs, open) {
     if (state==0) {
         mode = O_WRONLY;
     } else {
-        mode = O_WRONLY | O_CREAT
+        mode = O_WRONLY | O_CREAT;
     }
 
     intern->file = phdfs_hadoop_hdfs_open_file(intern->ptr, path, mode, 0, 0, 0);
