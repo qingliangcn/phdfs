@@ -87,6 +87,18 @@ PHP_MINFO_FUNCTION(phdfs);
 PHP_METHOD(phdfs, __construct);
 PHP_METHOD(phdfs, __destruct);
 
+
+ZEND_BEGIN_MODULE_GLOBALS(phdfs)
+    phdfs_hadoop_hdfs        phdfsFs;
+ZEND_END_MODULE_GLOBALS(phdfs)
+
+#ifdef ZTS
+#define HDFSFS_G(v) TSRMG(phdfs_globals_id, zend_phdfs_globals *, v)
+#else
+#define HDFSFS_G(v) (counter_globals.v)
+#endif
+
+
 #ifdef ZTS
 #include "TSRM.h"
 #endif

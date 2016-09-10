@@ -269,11 +269,10 @@ PHP_METHOD(phdfs, connect) {
 	hdfsBuilderSetNameNodePort(bld, atoi(Z_STRVAL_P(port)));
 	hdfsBuilderSetUserName(bld, Z_STRVAL_P(username));
 
-	intern->ptr = hdfsBuilderConnect(bld);
+	//intern->ptr = hdfsBuilderConnect(bld);
+	HDFSFS_G(phdfsFs) = hdfsBuilderConnect(bld);
 
-	//hdfsFreeBuilder(bld);
-
-    if (!intern->ptr) {
+    if (!HDFSFS_G(phdfsFs)) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING,
 						"Unable to connect to the server");
         ZVAL_FALSE(return_value);
@@ -330,13 +329,13 @@ PHP_METHOD(phdfs, fwrite) {
 
 /* }}} fwrite */
 
-/* {{{ proto mixed open(char*  path)
+/* {{{ proto mixed fopen(char*  path)
  */
-PHP_METHOD(phdfs, open) {
+PHP_METHOD(phdfs, fopen) {
     zval * _this_zval = NULL;
     const char * path = NULL;
     int path_len = 0;
-    int mode;
+    int mode = O_WRONLY | O_CREAT;
     int state;
     zval *id;
 
@@ -352,15 +351,8 @@ PHP_METHOD(phdfs, open) {
         ZVAL_FALSE(return_value);
         return;
     }
-    // 判断文件是否存在
-    state = phdfs_hadoop_hdfs_exists(intern->ptr,path);
-    if (state==0) {
-        mode = O_WRONLY;
-    } else {
-        mode = O_WRONLY | O_CREAT;
-    }
 
-    intern->file = phdfs_hadoop_hdfs_open_file(intern->ptr, path, mode, 0, 0, 0);
+    phdfs_hadoop_hdfs_file file = phdfs_hadoop_hdfs_open_file(intern->ptr, path, mode, 0, 0, 0);
     if (!intern->file) {
         ZVAL_FALSE(return_value);
         return;
@@ -369,7 +361,7 @@ PHP_METHOD(phdfs, open) {
     return;
 }
 
-/* }}} open */
+/* }}} fopen */
 
 /* {{{ proto mixed close()
  */
