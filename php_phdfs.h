@@ -53,7 +53,7 @@ extern "C" {
 #include <php.h>
 
 #ifdef HAVE_PHDFS
-#define PHP_PHDFS_VERSION "0.1.2"
+#define PHP_PHDFS_VERSION "0.1.3"
 
 
 #include <php_ini.h>
@@ -87,21 +87,13 @@ PHP_MINFO_FUNCTION(phdfs);
 PHP_METHOD(phdfs, __construct);
 PHP_METHOD(phdfs, __destruct);
 
-
-ZEND_BEGIN_MODULE_GLOBALS(phdfs)
-    phdfs_hadoop_hdfs        phdfsFs;
-ZEND_END_MODULE_GLOBALS(phdfs)
-
-#ifdef ZTS
-#define HDFSFS_G(v) TSRMG(phdfs_globals_id, zend_phdfs_globals *, v)
-#else
-#define HDFSFS_G(v) (counter_globals.v)
-#endif
-
-
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+
+// 用于注册hdfs的文件句柄
+#define PHDFS_FILE_DESCRIPTOR_RES_NAME "PHDFS File Handler"
+static int le_phdfs_file_descriptor;
 
 #define FREE_RESOURCE(resource) zend_list_delete(Z_LVAL_P(resource))
 
@@ -119,21 +111,21 @@ PHP_METHOD(phdfs, __destruct);
 typedef struct _ze_phdfs_object {
 	zend_object zo;
 	phdfs_hadoop_hdfs ptr;
-	phdfs_hadoop_hdfs_file file;
 	char *hdfs_host;
 	char *hdfs_port;
 	char *hdfs_username;
 } ze_phdfs_object;
 
 ZEND_BEGIN_MODULE_GLOBALS(phdfs)
-    phdfs_hadoop_hdfs fs;
+    phdfs_hadoop_hdfs phdfsFs;
 ZEND_END_MODULE_GLOBALS(phdfs)
+
 #ifdef ZTS
-#define PHDFS_G(v) TSRMG(phdfs_globals_id,zend_phdfs_globals *, v)
+#define PHDFS_G(v) TSRMG(phdfs_globals_id, zend_phdfs_globals *, v)
 #else
 #define PHDFS_G(v) (phdfs_globals.v)
 #endif
-ZEND_DECLARE_MODULE_GLOBALS(phdfs)
+
 
 PHP_METHOD(phdfs, __construct);
 #if (PHP_MAJOR_VERSION >= 5)
@@ -209,18 +201,19 @@ ZEND_END_ARG_INFO()
 #define phdfs__disconnect_args NULL
 #endif
 
-PHP_METHOD(phdfs, open);
+PHP_METHOD(phdfs, fopen);
 #if (PHP_MAJOR_VERSION >= 5)
-ZEND_BEGIN_ARG_INFO_EX(phdfs__open_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
+ZEND_BEGIN_ARG_INFO_EX(phdfs__fopen_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
   ZEND_ARG_INFO(0,path)
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__write_args NULL
 #endif
 
-PHP_METHOD(phdfs, close);
+PHP_METHOD(phdfs, fclose);
 #if (PHP_MAJOR_VERSION >= 5)
-ZEND_BEGIN_ARG_INFO_EX(phdfs__close_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 0)
+ZEND_BEGIN_ARG_INFO_EX(phdfs__fclose_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
+    ZEND_ARG_INFO(0,fp)
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__write_args NULL
@@ -228,8 +221,9 @@ ZEND_END_ARG_INFO()
 
 PHP_METHOD(phdfs, fwrite);
 #if (PHP_MAJOR_VERSION >= 5)
-ZEND_BEGIN_ARG_INFO_EX(phdfs__fwrite_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 1)
-  ZEND_ARG_INFO(0,buffer)
+ZEND_BEGIN_ARG_INFO_EX(phdfs__fwrite_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 2)
+    ZEND_ARG_INFO(0,fp)
+    ZEND_ARG_INFO(0,buffer)
 ZEND_END_ARG_INFO()
 #else /* PHP 4.x */
 #define phdfs__write_args NULL
