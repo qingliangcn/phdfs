@@ -856,9 +856,9 @@ PHP_MINIT_FUNCTION(phdfs) {
     ce.create_object = phdfs_objects_new;
     phdfs_object_handlers.clone_obj = NULL;
     phdfs_ce_ptr = zend_register_internal_class(&ce TSRMLS_CC);
-    zend_declare_property_string(phdfs_ce_ptr, "host", strlen("host"), "127.0.0.1", ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
-    zend_declare_property_string(phdfs_ce_ptr, "port", strlen("port"), "9000", ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
-	zend_declare_property_string(phdfs_ce_ptr, "username", strlen("username"), "hadoop", ZEND_ACC_PUBLIC|ZEND_ACC_STATIC TSRMLS_CC);
+    zend_declare_property_string(phdfs_ce_ptr, "host", strlen("host"), "127.0.0.1", ZEND_ACC_PUBLIC TSRMLS_CC);
+    zend_declare_property_string(phdfs_ce_ptr, "port", strlen("port"), "9000", ZEND_ACC_PUBLIC TSRMLS_CC);
+	zend_declare_property_string(phdfs_ce_ptr, "username", strlen("username"), "hadoop", ZEND_ACC_PUBLIC TSRMLS_CC);
     zend_hash_init(&php_phdfs_properties, 0, NULL, NULL, 1);
     REGISTER_LONG_CONSTANT("O_WRONLY", O_WRONLY, CONST_CS | CONST_PERSISTENT);
     REGISTER_LONG_CONSTANT("O_CREAT", O_CREAT, CONST_CS | CONST_PERSISTENT);
